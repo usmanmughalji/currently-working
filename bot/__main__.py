@@ -6,7 +6,7 @@ from os import execl, path, remove
 from sys import executable
 import time
 
-from telegram.ext import CommandHandler, run_async
+from telegram.ext import CommandHandler
 from bot import dispatcher, updater, botStartTime
 from bot.helper.ext_utils import fs_utils
 from bot.helper.telegram_helper.bot_commands import BotCommands
@@ -16,7 +16,6 @@ from .helper.telegram_helper.filters import CustomFilters
 from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, delete
 
 
-@run_async
 def stats(update, context):
     currentTime = get_readable_time((time.time() - botStartTime))
     total, used, free = shutil.disk_usage('.')
@@ -40,7 +39,6 @@ def stats(update, context):
     sendMessage(stats, context.bot, update)
 
 
-@run_async
 def start(update, context):
     LOGGER.info('UID: {} - UN: {} - MSG: {}'.format(update.message.chat.id,update.message.chat.username,update.message.text))
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
@@ -52,7 +50,6 @@ def start(update, context):
         sendMessage("Oops! not a authorized user.", context.bot, update)
 
 
-@run_async
 def restart(update, context):
     restart_message = sendMessage("Restarting, Please wait!", context.bot, update)
     # Save restart message object in order to reply to it after restarting
@@ -62,7 +59,6 @@ def restart(update, context):
     execl(executable, executable, "-m", "bot")
 
 
-@run_async
 def ping(update, context):
     start_time = int(round(time.time() * 1000))
     reply = sendMessage("Starting Ping", context.bot, update)
@@ -70,12 +66,10 @@ def ping(update, context):
     editMessage(f'{end_time - start_time} ms', reply)
 
 
-@run_async
 def log(update, context):
     sendLogFile(context.bot, update)
 
 
-@run_async
 def bot_help(update, context):
     help_string_adm = f'''
 /{BotCommands.StartCommand} <b>: Alive or Not</b>
@@ -141,16 +135,16 @@ def main():
         restart_message.edit_text("Restarted Successfully!")
         remove('restart.pickle')
 
-    start_handler = CommandHandler(BotCommands.StartCommand, start)
+    start_handler = CommandHandler(BotCommands.StartCommand, start, run_async=True)
     ping_handler = CommandHandler(BotCommands.PingCommand, ping,
-                                  filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
+                                  filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
     restart_handler = CommandHandler(BotCommands.RestartCommand, restart,
-                                     filters=CustomFilters.owner_filter | CustomFilters.sudo_user)
+                                     filters=CustomFilters.owner_filter | CustomFilters.sudo_user, run_async=True)
     help_handler = CommandHandler(BotCommands.HelpCommand,
-                                  bot_help, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
+                                  bot_help, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
     stats_handler = CommandHandler(BotCommands.StatsCommand,
-                                   stats, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
-    log_handler = CommandHandler(BotCommands.LogCommand, log, filters=CustomFilters.owner_filter | CustomFilters.sudo_user)
+                                   stats, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
+    log_handler = CommandHandler(BotCommands.LogCommand, log, filters=CustomFilters.owner_filter | CustomFilters.sudo_user, run_async=True)
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(ping_handler)
     dispatcher.add_handler(restart_handler)
