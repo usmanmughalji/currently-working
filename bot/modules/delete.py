@@ -7,7 +7,6 @@ from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.mirror_utils.upload_utils import gdriveTools
 
-@run_async
 def deletefile(update, context):
 	msg_args = update.message.text.split(None, 1)
 	msg = ''
